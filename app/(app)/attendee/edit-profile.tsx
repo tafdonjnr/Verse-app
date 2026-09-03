@@ -154,10 +154,11 @@ export default function AttendeeEditProfile() {
           {
             ...currentUser,
             ...data.attendee,
-            id: data.attendee.id,
+            id: data.attendee.id ?? currentUser?.id ?? "",
+            email: data.attendee.email ?? currentUser?.email ?? "",
             role: currentUser?.role ?? "attendee",
           },
-          currentToken
+          currentToken ?? ""
         );
 
         Alert.alert("Saved", "Profile updated successfully.", [

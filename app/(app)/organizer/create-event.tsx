@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { ABUJA_AREAS } from "@/src/constants/areas";
 import React from "react";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -164,18 +165,18 @@ function BannerPreview({
 }
 
 const CATEGORIES = [
-  { value: "concert",       label: "Concert" },
-  { value: "festival",      label: "Festival" },
-  { value: "rave",          label: "Rave" },
-  { value: "outdoor",       label: "Outdoor" },
-  { value: "food-festival", label: "Food" },
-  { value: "tech",          label: "Tech" },
-  { value: "sports",        label: "Sports" },
-  { value: "trade-fair",    label: "Trade Fair" },
-  { value: "popup",         label: "Pop-up" },
-  { value: "funfair",       label: "Funfair" },
+  { value: "concert",        label: "Concert" },
+  { value: "festival",       label: "Festival" },
+  { value: "rave",           label: "Rave" },
+  { value: "outdoor",        label: "Outdoor" },
+  { value: "food-festival",  label: "Food" },
+  { value: "tech",           label: "Tech" },
+  { value: "sports",         label: "Sports" },
+  { value: "trade-fair",     label: "Trade Fair" },
+  { value: "popup",          label: "Pop-up" },
+  { value: "funfair",        label: "Funfair" },
   { value: "color-festival", label: "Color Fest" },
-  { value: "general",       label: "General" },
+  { value: "general",        label: "General" },
 ];
 
 type WizardData = {
@@ -184,6 +185,7 @@ type WizardData = {
   category: string;
   date: Date;
   venue: string;
+  area: string;
   isPaid: boolean;
   price: string;
   ticketsAvailable: string;
@@ -197,6 +199,7 @@ const EMPTY: WizardData = {
   category: "general",
   date: new Date(),
   venue: "",
+  area: "",
   isPaid: false,
   price: "",
   ticketsAvailable: "",
@@ -217,6 +220,7 @@ function WizardScreen() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
@@ -254,6 +258,7 @@ function WizardScreen() {
       form.append("category", data.category);
       form.append("date", data.date.toISOString());
       form.append("venue", data.venue.trim());
+      form.append("area", data.area);
       form.append("price", resolveSubmitPrice(data.isPaid, data.price));
       form.append("ticketsAvailable", data.ticketsAvailable || "0");
       appendBannerPosition(form, data.bannerPosition);
@@ -266,9 +271,7 @@ function WizardScreen() {
       });
 
       if (res.ok) {
-        Alert.alert("Event Created", "Your event is now live.", [
-          { text: "Done", onPress: () => router.replace("/organizer") },
-        ]);
+        setSubmitted(true);
       } else {
         const err = await res.json();
         Alert.alert("Error", err.message ?? "Failed to create event");
@@ -280,6 +283,71 @@ function WizardScreen() {
     }
   };
 
+  // ── Success screen ──────────────────────────────────────────────────────────
+  if (submitted) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.successWrap}>
+          <View style={styles.successIconWrap}>
+            <View style={[styles.successIconRing, { borderColor: colors.accent + "33" }]}>
+              <View style={[styles.successIconInner, { backgroundColor: colors.accent }]}>
+                <Text style={styles.successCheckmark}>✓</Text>
+              </View>
+            </View>
+          </View>
+          <Text style={styles.successTitle}>Event live!</Text>
+          <Text style={styles.successSub}>
+            {data.title} is now published and visible to attendees.
+          </Text>
+
+          <View style={styles.successMeta}>
+            <View style={styles.successMetaRow}>
+              <Text style={styles.successMetaLabel}>DATE</Text>
+              <Text style={styles.successMetaValue}>
+                {data.date.toLocaleDateString("en-NG", {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </Text>
+            </View>
+            {data.venue ? (
+              <View style={styles.successMetaRow}>
+                <Text style={styles.successMetaLabel}>VENUE</Text>
+                <Text style={styles.successMetaValue}>{data.venue}</Text>
+              </View>
+            ) : null}
+            {data.area ? (
+              <View style={styles.successMetaRow}>
+                <Text style={styles.successMetaLabel}>AREA</Text>
+                <Text style={styles.successMetaValue}>{data.area}</Text>
+              </View>
+            ) : null}
+            <View style={styles.successMetaRow}>
+              <Text style={styles.successMetaLabel}>TICKETS</Text>
+              <Text style={styles.successMetaValue}>
+                {data.ticketsAvailable || "Unlimited"} available
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.successCta}>
+          <Pressable
+            style={styles.primaryBtn}
+            onPress={() => router.replace("/organizer/events" as any)}
+          >
+            <Text style={styles.primaryBtnText}>View My Events →</Text>
+          </Pressable>
+          <Pressable onPress={() => router.replace("/organizer" as any)}>
+            <Text style={styles.secondaryBtn}>Back to Dashboard</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   const steps = ["Details", "Location & Time", "Tickets"];
   const stepHint = step < 2 ? getWizardStepHint(step, data) : null;
 
@@ -289,7 +357,6 @@ function WizardScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.wizardHeader}>
           <Pressable
             style={styles.backBtn}
@@ -365,7 +432,7 @@ function WizardScreen() {
   );
 }
 
-// ─── STEP 0 ───────────────────────────────────────────────────────────────────
+// ─── STEP 0 ──────────────────────────────────────────────────────────────────
 
 function Step0({ data, set, pickImage }: {
   data: WizardData;
@@ -377,7 +444,6 @@ function Step0({ data, set, pickImage }: {
       <Text style={styles.stepTitle}>Tell us about{"\n"}your event.</Text>
       <Text style={styles.stepSub}>Start with the basics — name, description, and a cover photo.</Text>
 
-      {/* Banner */}
       {data.banner ? (
         <View style={styles.bannerPickerFilled}>
           <BannerPreview
@@ -445,7 +511,7 @@ function Step0({ data, set, pickImage }: {
   );
 }
 
-// ─── STEP 1 ───────────────────────────────────────────────────────────────────
+// ─── STEP 1 ──────────────────────────────────────────────────────────────────
 
 function Step1({ data, set, showDatePicker, setShowDatePicker, showTimePicker, setShowTimePicker }: {
   data: WizardData;
@@ -455,6 +521,8 @@ function Step1({ data, set, showDatePicker, setShowDatePicker, showTimePicker, s
   showTimePicker: boolean;
   setShowTimePicker: (v: boolean) => void;
 }) {
+  const [showAreaPicker, setShowAreaPicker] = useState(false);
+
   const formatDate = (d: Date) =>
     d.toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
   const formatTime = (d: Date) =>
@@ -509,17 +577,61 @@ function Step1({ data, set, showDatePicker, setShowDatePicker, showTimePicker, s
       <Field label="Venue" required>
         <TextInput
           style={styles.input}
-          placeholder="e.g. Jabi Lake Park, Abuja"
+          placeholder="e.g. Jabi Lake Park"
           placeholderTextColor={colors.textTertiary}
           value={data.venue}
           onChangeText={(v) => set("venue", v)}
         />
       </Field>
+
+      <Field label="Area (Abuja)">
+        <Pressable
+          style={styles.input}
+          onPress={() => setShowAreaPicker(!showAreaPicker)}
+        >
+          <Text style={[styles.inputText, !data.area && { color: colors.textTertiary }]}>
+            {data.area || "Select area…"}
+          </Text>
+        </Pressable>
+        {showAreaPicker && (
+          <View style={styles.areaPicker}>
+            <ScrollView
+              nestedScrollEnabled
+              showsVerticalScrollIndicator={false}
+              style={{ maxHeight: 220 }}
+            >
+              {ABUJA_AREAS.map((area) => (
+                <Pressable
+                  key={area}
+                  style={[
+                    styles.areaItem,
+                    data.area === area && styles.areaItemActive,
+                  ]}
+                  onPress={() => {
+                    set("area", area);
+                    setShowAreaPicker(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.areaItemText,
+                    data.area === area && styles.areaItemTextActive,
+                  ]}>
+                    {area}
+                  </Text>
+                  {data.area === area && (
+                    <Text style={styles.areaItemCheck}>✓</Text>
+                  )}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </Field>
     </View>
   );
 }
 
-// ─── STEP 2 ───────────────────────────────────────────────────────────────────
+// ─── STEP 2 ──────────────────────────────────────────────────────────────────
 
 function Step2({ data, set }: {
   data: WizardData;
@@ -528,7 +640,7 @@ function Step2({ data, set }: {
   const { isPaid } = data;
   const price = parsePaidPriceAmount(data.price);
   const tickets = parseInt(data.ticketsAvailable || "0", 10) || 0;
-  const serviceFee = 150;
+  const serviceFee = isPaid && price > 0 ? 150 + Math.round(price * 0.035) : 0;
   const totalPerTicket = isPaid ? price + serviceFee : 0;
 
   return (
@@ -587,7 +699,7 @@ function Step2({ data, set }: {
           value={!isPaid ? "Free" : price > 0 ? `₦${price.toLocaleString()}` : "—"}
         />
         {isPaid && price > 0 && (
-          <SummaryRow label="Service fee (attendee pays)" value={`₦${serviceFee}`} />
+          <SummaryRow label="Service fee (attendee pays)" value={`₦${serviceFee.toLocaleString()}`} />
         )}
         {isPaid && price > 0 && (
           <SummaryRow label="Attendee pays" value={`₦${totalPerTicket.toLocaleString()}`} bold />
@@ -630,6 +742,7 @@ type EditData = {
   category: string;
   date: Date;
   venue: string;
+  area: string;
   isPaid: boolean;
   price: string;
   ticketsAvailable: string;
@@ -645,10 +758,11 @@ function EditScreen({ eventId }: { eventId: string }) {
   const [activeCard, setActiveCard] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showAreaPicker, setShowAreaPicker] = useState(false);
 
   const [data, setData] = useState<EditData>({
     title: "", description: "", category: "general", date: new Date(),
-    venue: "", isPaid: false, price: "", ticketsAvailable: "",
+    venue: "", area: "", isPaid: false, price: "", ticketsAvailable: "",
     banner: null, bannerPosition: { ...DEFAULT_BANNER_POSITION }, existingBanner: null,
   });
 
@@ -669,6 +783,7 @@ function EditScreen({ eventId }: { eventId: string }) {
           category: event.category ?? "general",
           date: event.date ? new Date(event.date) : new Date(),
           venue: event.venue ?? "",
+          area: event.area ?? "",
           isPaid,
           price: isPaid ? String(event.price) : "",
           ticketsAvailable: event.ticketsAvailable?.toString() ?? "",
@@ -709,6 +824,7 @@ function EditScreen({ eventId }: { eventId: string }) {
       form.append("category", data.category);
       form.append("date", data.date.toISOString());
       form.append("venue", data.venue.trim());
+      form.append("area", data.area);
       form.append("price", resolveSubmitPrice(data.isPaid, data.price));
       form.append("ticketsAvailable", data.ticketsAvailable || "0");
       appendBannerPosition(form, data.bannerPosition);
@@ -779,7 +895,6 @@ function EditScreen({ eventId }: { eventId: string }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Banner card */}
           <EditCard
             title="Cover Photo"
             subtitle={bannerUri ? "Tap to reposition or change" : "Add a cover photo"}
@@ -919,20 +1034,48 @@ function EditScreen({ eventId }: { eventId: string }) {
           </EditCard>
 
           <EditCard
-            title="Venue"
-            subtitle={data.venue || "Not set"}
+            title="Venue & Area"
+            subtitle={data.venue ? `${data.venue}${data.area ? ` · ${data.area}` : ""}` : "Not set"}
             active={activeCard === "venue"}
             onPress={() => setActiveCard(activeCard === "venue" ? null : "venue")}
           >
             {activeCard === "venue" && (
               <View style={styles.editCardBody}>
+                <Text style={styles.editFieldLabel}>Venue name</Text>
                 <TextInput
                   style={styles.editInput}
                   value={data.venue}
                   onChangeText={(v) => set("venue", v)}
-                  placeholder="e.g. Jabi Lake Park, Abuja"
+                  placeholder="e.g. Jabi Lake Park"
                   placeholderTextColor={colors.textTertiary}
                 />
+                <Text style={[styles.editFieldLabel, { marginTop: 14 }]}>Area</Text>
+                <Pressable
+                  style={styles.editInput}
+                  onPress={() => setShowAreaPicker(!showAreaPicker)}
+                >
+                  <Text style={[styles.inputText, !data.area && { color: colors.textTertiary }]}>
+                    {data.area || "Select area…"}
+                  </Text>
+                </Pressable>
+                {showAreaPicker && (
+                  <View style={styles.areaPicker}>
+                    <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} style={{ maxHeight: 200 }}>
+                      {ABUJA_AREAS.map((area) => (
+                        <Pressable
+                          key={area}
+                          style={[styles.areaItem, data.area === area && styles.areaItemActive]}
+                          onPress={() => { set("area", area); setShowAreaPicker(false); }}
+                        >
+                          <Text style={[styles.areaItemText, data.area === area && styles.areaItemTextActive]}>
+                            {area}
+                          </Text>
+                          {data.area === area && <Text style={styles.areaItemCheck}>✓</Text>}
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             )}
           </EditCard>
@@ -1039,6 +1182,95 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.pageBg },
   center:    { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.pageBg },
 
+  // Success screen
+  successWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingTop: 60,
+  },
+  successIconWrap: { marginBottom: 28 },
+  successIconRing: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successIconInner: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successCheckmark: {
+    fontSize: 32,
+    color: "#0A0A0A",
+    fontFamily: fonts.dmSansBold,
+  },
+  successTitle: {
+    fontFamily: fonts.frauncesBlack,
+    fontSize: 36,
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  successSub: {
+    fontFamily: fonts.dmSans,
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginBottom: 32,
+    lineHeight: 22,
+  },
+  successMeta: {
+    width: "100%",
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 20,
+    gap: 14,
+  },
+  successMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  successMetaLabel: {
+    fontFamily: fonts.dmMonoMedium,
+    fontSize: 10,
+    color: colors.textTertiary,
+    letterSpacing: 1.2,
+  },
+  successMetaValue: {
+    fontFamily: fonts.dmSansMedium,
+    fontSize: 13,
+    color: colors.textPrimary,
+    flex: 1,
+    textAlign: "right",
+  },
+  successCta: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: 12,
+    backgroundColor: colors.pageBg,
+  },
+  secondaryBtn: {
+    fontFamily: fonts.dmSans,
+    fontSize: 14,
+    color: colors.textTertiary,
+    textAlign: "center",
+    paddingVertical: 4,
+  },
+
   // Wizard header
   wizardHeader: {
     flexDirection: "row",
@@ -1051,46 +1283,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  stepIndicatorRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  stepIndicatorItem: {
-    alignItems: "center",
-    gap: 3,
-  },
-  stepDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.surface2,
-  },
-  stepDotActive: {
-    backgroundColor: colors.accent,
-    width: 18,
-    height: 6,
-    borderRadius: 3,
-  },
-  stepDotDone: {
-    backgroundColor: colors.accent,
-    opacity: 0.35,
-  },
-  stepLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 9,
-    color: colors.textTertiary,
-    letterSpacing: 0.2,
-  },
-  stepLabelActive: {
-    color: colors.accent,
-    fontFamily: fonts.dmSansMedium,
-  },
+  stepIndicatorRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  stepIndicatorItem: { alignItems: "center", gap: 3 },
+  stepDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.surface2 },
+  stepDotActive: { backgroundColor: colors.accent, width: 18, height: 6, borderRadius: 3 },
+  stepDotDone:   { backgroundColor: colors.accent, opacity: 0.35 },
+  stepLabel:     { fontFamily: fonts.dmSans, fontSize: 9, color: colors.textTertiary, letterSpacing: 0.2 },
+  stepLabelActive: { color: colors.accent, fontFamily: fonts.dmSansMedium },
 
-  wizardContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
+  wizardContent: { paddingHorizontal: 20, paddingBottom: 32 },
   wizardFooter: {
     padding: 20,
     paddingBottom: 36,
@@ -1099,12 +1300,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     gap: 10,
   },
-  ctaHint: {
-    fontFamily: fonts.dmSans,
-    fontSize: 12,
-    color: colors.textTertiary,
-    textAlign: "center",
-  },
+  ctaHint: { fontFamily: fonts.dmSans, fontSize: 12, color: colors.textTertiary, textAlign: "center" },
 
   // Edit header
   editHeader: {
@@ -1118,11 +1314,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  editHeaderTitle: {
-    fontFamily: fonts.frauncesBold,
-    fontSize: 18,
-    color: colors.textPrimary,
-  },
+  editHeaderTitle: { fontFamily: fonts.frauncesBold, fontSize: 18, color: colors.textPrimary },
   saveHeaderBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -1130,19 +1322,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.accent,
   },
-  saveHeaderBtnText: {
-    fontFamily: fonts.dmSansBold,
-    fontSize: 13,
-    color: colors.accent,
-  },
+  saveHeaderBtnText: { fontFamily: fonts.dmSansBold, fontSize: 13, color: colors.accent },
+  editContent: { paddingHorizontal: 20, paddingVertical: 16, gap: 10 },
 
-  editContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 10,
-  },
-
-  // Edit cards
   editCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
@@ -1150,33 +1332,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  editCardActive: {
-    borderColor: colors.accent,
-    borderWidth: 1.5,
-  },
-  editCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 18,
-  },
-  editCardTitle: {
-    fontFamily: fonts.dmSansBold,
-    fontSize: 14,
-    color: colors.textPrimary,
-  },
-  editCardSubtitle: {
-    fontFamily: fonts.dmSans,
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  editCardChevron: {
-    fontSize: 22,
-    color: colors.textTertiary,
-  },
-  editCardChevronActive: {
-    color: colors.accent,
-  },
+  editCardActive: { borderColor: colors.accent, borderWidth: 1.5 },
+  editCardHeader: { flexDirection: "row", alignItems: "center", padding: 18 },
+  editCardTitle:  { fontFamily: fonts.dmSansBold, fontSize: 14, color: colors.textPrimary },
+  editCardSubtitle: { fontFamily: fonts.dmSans, fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  editCardChevron: { fontSize: 22, color: colors.textTertiary },
+  editCardChevronActive: { color: colors.accent },
   editCardBody: {
     paddingHorizontal: 18,
     paddingBottom: 18,
@@ -1184,7 +1345,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingTop: 16,
   },
-
   editBannerFrame: {
     borderRadius: radius.lg,
     overflow: "hidden",
@@ -1192,7 +1352,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-
   editFieldLabel: {
     fontFamily: fonts.dmSans,
     fontSize: 11,
@@ -1213,11 +1372,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     justifyContent: "center",
   },
-  editTextarea: {
-    minHeight: 90,
-    paddingTop: 12,
-  },
-
+  editTextarea: { minHeight: 90, paddingTop: 12 },
   outlineBtn: {
     paddingVertical: 12,
     borderRadius: radius.lg,
@@ -1225,17 +1380,10 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     alignItems: "center",
   },
-  outlineBtnText: {
-    fontFamily: fonts.dmSansBold,
-    fontSize: 13,
-    color: colors.accent,
-  },
+  outlineBtnText: { fontFamily: fonts.dmSansBold, fontSize: 13, color: colors.accent },
 
   // Wizard steps
-  stepContainer: {
-    paddingTop: 28,
-    gap: 26,
-  },
+  stepContainer: { paddingTop: 28, gap: 26 },
   stepTitle: {
     fontFamily: fonts.frauncesBlack,
     fontSize: 34,
@@ -1251,7 +1399,6 @@ const styles = StyleSheet.create({
     marginTop: -12,
   },
 
-  // Fields
   field: { gap: 8 },
   fieldLabel: {
     fontFamily: fonts.dmSans,
@@ -1273,16 +1420,31 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     justifyContent: "center",
   },
-  inputText: {
-    fontFamily: fonts.dmSansMedium,
-    fontSize: 15,
-    color: colors.textPrimary,
+  inputText: { fontFamily: fonts.dmSansMedium, fontSize: 15, color: colors.textPrimary },
+  textarea:  { minHeight: 100, paddingTop: 14, textAlignVertical: "top" },
+
+  // Area picker
+  areaPicker: {
+    marginTop: 6,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
   },
-  textarea: {
-    minHeight: 100,
-    paddingTop: 14,
-    textAlignVertical: "top",
+  areaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
+  areaItemActive: { backgroundColor: "rgba(202,255,0,0.06)" },
+  areaItemText: { fontFamily: fonts.dmSans, fontSize: 14, color: colors.textPrimary },
+  areaItemTextActive: { fontFamily: fonts.dmSansBold, color: colors.accent },
+  areaItemCheck: { fontFamily: fonts.dmSansBold, fontSize: 13, color: colors.accent },
 
   // Banner
   bannerPickerEmpty: {
@@ -1304,15 +1466,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: 8,
   },
-  bannerFrame: {
-    width: "100%",
-    overflow: "hidden",
-    backgroundColor: colors.surface2,
-  },
-  bannerImagePositioned: {
-    width: "100%",
-    height: "100%",
-  },
+  bannerFrame: { width: "100%", overflow: "hidden", backgroundColor: colors.surface2 },
+  bannerImagePositioned: { width: "100%", height: "100%" },
   bannerDragHint: {
     position: "absolute",
     bottom: 10,
@@ -1322,17 +1477,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: radius.sm,
   },
-  bannerDragHintText: {
-    fontFamily: fonts.dmSansMedium,
-    fontSize: 11,
-    color: "#F0F0F0",
-  },
+  bannerDragHintText: { fontFamily: fonts.dmSansMedium, fontSize: 11, color: "#F0F0F0" },
   bannerEmptyIcon: { fontSize: 28 },
-  bannerEmptyText: {
-    fontFamily: fonts.dmSansBold,
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
+  bannerEmptyText: { fontFamily: fonts.dmSansBold, fontSize: 14, color: colors.textSecondary },
   bannerEmptyHint: {
     fontFamily: fonts.dmSans,
     fontSize: 11,
@@ -1340,23 +1487,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 20,
   },
-  changeBannerBtn: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  changeBannerText: {
-    fontFamily: fonts.dmSans,
-    fontSize: 12,
-    color: colors.accent,
-    textDecorationLine: "underline",
-  },
+  changeBannerBtn: { paddingHorizontal: 16, paddingBottom: 12 },
+  changeBannerText: { fontFamily: fonts.dmSans, fontSize: 12, color: colors.accent, textDecorationLine: "underline" },
 
   // Category chips
-  categoryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+  categoryGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   categoryChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -1365,19 +1500,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  categoryChipActive: {
-    backgroundColor: "rgba(202,255,0,0.1)",
-    borderColor: "rgba(202,255,0,0.3)",
-  },
-  categoryChipText: {
-    fontFamily: fonts.dmSansMedium,
-    fontSize: 11,
-    color: colors.textSecondary,
-  },
-  categoryChipTextActive: {
-    color: colors.accent,
-    fontFamily: fonts.dmSansBold,
-  },
+  categoryChipActive: { backgroundColor: "rgba(202,255,0,0.1)", borderColor: "rgba(202,255,0,0.3)" },
+  categoryChipText: { fontFamily: fonts.dmSansMedium, fontSize: 11, color: colors.textSecondary },
+  categoryChipTextActive: { color: colors.accent, fontFamily: fonts.dmSansBold },
 
   // Toggle
   toggleRow: {
@@ -1390,25 +1515,10 @@ const styles = StyleSheet.create({
     padding: 3,
     gap: 3,
   },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 11,
-    alignItems: "center",
-    borderRadius: 999,
-    backgroundColor: "transparent",
-  },
-  toggleBtnActive: {
-    backgroundColor: colors.accent,
-  },
-  toggleBtnText: {
-    fontFamily: fonts.dmSansMedium,
-    fontSize: 13,
-    color: colors.textTertiary,
-  },
-  toggleBtnTextActive: {
-    color: "#0A0A0A",
-    fontFamily: fonts.dmSansBold,
-  },
+  toggleBtn: { flex: 1, paddingVertical: 11, alignItems: "center", borderRadius: 999 },
+  toggleBtnActive: { backgroundColor: colors.accent },
+  toggleBtnText: { fontFamily: fonts.dmSansMedium, fontSize: 13, color: colors.textTertiary },
+  toggleBtnTextActive: { color: "#0A0A0A", fontFamily: fonts.dmSansBold },
 
   // Summary card
   summaryCard: {
@@ -1419,33 +1529,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: 12,
   },
-  summaryTitle: {
-    fontFamily: fonts.frauncesBold,
-    fontSize: 16,
-    color: colors.textPrimary,
-    marginBottom: 2,
-    letterSpacing: -0.2,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  summaryLabel: {
-    fontFamily: fonts.dmSans,
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  summaryValue: {
-    fontFamily: fonts.dmSansMedium,
-    fontSize: 13,
-    color: colors.textPrimary,
-  },
-  summaryValueBold: { fontFamily: fonts.dmSansBold },
-  summaryValueAccent: {
-    fontFamily: fonts.dmSansBold,
-    color: colors.accent,
-  },
+  summaryTitle: { fontFamily: fonts.frauncesBold, fontSize: 16, color: colors.textPrimary, marginBottom: 2, letterSpacing: -0.2 },
+  summaryRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  summaryLabel: { fontFamily: fonts.dmSans, fontSize: 13, color: colors.textSecondary },
+  summaryValue: { fontFamily: fonts.dmSansMedium, fontSize: 13, color: colors.textPrimary },
+  summaryValueBold:   { fontFamily: fonts.dmSansBold },
+  summaryValueAccent: { fontFamily: fonts.dmSansBold, color: colors.accent },
 
   // Primary button
   primaryBtn: {
@@ -1457,12 +1546,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   primaryBtnDisabled: { opacity: 0.4 },
-  primaryBtnText: {
-    fontFamily: fonts.dmSansBold,
-    fontSize: 15,
-    color: "#0A0A0A",
-    letterSpacing: 0.2,
-  },
+  primaryBtnText: { fontFamily: fonts.dmSansBold, fontSize: 15, color: "#0A0A0A", letterSpacing: 0.2 },
 
   backBtn: {
     width: 36,
@@ -1474,8 +1558,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  backArrow: {
-    fontSize: 18,
-    color: colors.textPrimary,
-  },
+  backArrow: { fontSize: 18, color: colors.textPrimary },
 });
