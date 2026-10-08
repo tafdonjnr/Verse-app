@@ -16,6 +16,7 @@ import { useState } from "react";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { loginUser } from "@/src/services/auth";
+import { safeBack } from "@/src/utils/navigation";
 
 const { width, height } = Dimensions.get("window");
 
@@ -70,7 +71,7 @@ export default function LoginScreen() {
         />
 
         {/* Back button */}
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
+        <Pressable style={styles.backBtn} onPress={() => safeBack("/role")}>
           <Text style={styles.backArrow}>←</Text>
         </Pressable>
 

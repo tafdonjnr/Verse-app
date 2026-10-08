@@ -20,6 +20,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { ABUJA_AREAS } from "@/src/constants/areas";
+import { safeBack } from "@/src/utils/navigation";
 import React from "react";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -360,7 +361,7 @@ function WizardScreen() {
         <View style={styles.wizardHeader}>
           <Pressable
             style={styles.backBtn}
-            onPress={() => step === 0 ? router.back() : setStep(step - 1)}
+            onPress={() => step === 0 ? safeBack("/organizer") : setStep(step - 1)}
           >
             <Text style={styles.backArrow}>←</Text>
           </Pressable>
@@ -873,7 +874,7 @@ function EditScreen({ eventId }: { eventId: string }) {
     >
       <View style={styles.container}>
         <View style={styles.editHeader}>
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
+          <Pressable style={styles.backBtn} onPress={() => safeBack("/organizer")}>
             <Text style={styles.backArrow}>←</Text>
           </Pressable>
           <Text style={styles.editHeaderTitle}>Edit Event</Text>

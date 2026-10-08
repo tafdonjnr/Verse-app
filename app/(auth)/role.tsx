@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { safeBack } from "@/src/utils/navigation";
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,6 +39,10 @@ export default function RoleScreen() {
         locations={[0.3, 0.6, 0.88]}
         style={styles.gradient}
       />
+
+      <Pressable style={styles.backBtn} onPress={() => safeBack("/splash")}>
+        <Text style={styles.backArrow}>←</Text>
+      </Pressable>
 
       {/* Bottom sheet — dark surface */}
       <View style={styles.sheet}>
@@ -106,6 +111,23 @@ const styles = StyleSheet.create({
     height: height * 0.78,
     top: 0,
     left: 0,
+  },
+
+  backBtn: {
+    position: "absolute",
+    top: 56,
+    left: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  backArrow: {
+    fontSize: 18,
+    color: "#fff",
   },
 
   // Dark sheet — matches app surface color

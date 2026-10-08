@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { safeBack } from "@/src/utils/navigation";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -172,7 +173,7 @@ export default function CheckoutScreen() {
           >
             <Text style={styles.payBtnText}>Try Again</Text>
           </Pressable>
-          <Pressable onPress={() => router.back()}>
+          <Pressable onPress={() => safeBack("/attendee")}>
             <Text style={styles.secondaryBtn}>Go Back</Text>
           </Pressable>
         </View>
@@ -187,7 +188,7 @@ export default function CheckoutScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
+        <Pressable style={styles.backBtn} onPress={() => safeBack("/attendee")}>
           <Text style={styles.backArrow}>←</Text>
         </Pressable>
         <Text style={styles.headerTitle}>Checkout</Text>

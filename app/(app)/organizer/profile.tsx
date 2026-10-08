@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Platform,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
@@ -74,15 +75,26 @@ export default function OrganizerProfileScreen() {
     }, [token])
   );
 
+  const performLogout = async () => {
+    await logout();
+    router.replace("/login");
+  };
+
   const handleLogout = () => {
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined" && window.confirm("Are you sure you want to sign out?")) {
+        void performLogout();
+      }
+      return;
+    }
+
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Sign Out",
         style: "destructive",
-        onPress: async () => {
-          await logout();
-          router.replace("/(auth)/role");
+        onPress: () => {
+          void performLogout();
         },
       },
     ]);

@@ -15,6 +15,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { safeBack } from "@/src/utils/navigation";
 
 const { width, height } = Dimensions.get("window");
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -140,7 +141,7 @@ export default function OTPScreen() {
           style={styles.gradient}
         />
 
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
+        <Pressable style={styles.backBtn} onPress={() => safeBack("/sign-up")}>
           <Text style={styles.backArrow}>←</Text>
         </Pressable>
 

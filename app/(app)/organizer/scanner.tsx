@@ -10,6 +10,7 @@ import { CameraView, Camera } from "expo-camera";
 import { router } from "expo-router";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { safeBack } from "@/src/utils/navigation";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -148,7 +149,7 @@ export default function ScannerScreen() {
         {/* Top dark */}
         <View style={styles.overlayTop}>
           <View style={styles.header}>
-            <Pressable style={styles.backBtn} onPress={() => router.back()}>
+            <Pressable style={styles.backBtn} onPress={() => safeBack("/organizer")}>
               <Text style={styles.backArrow}>←</Text>
             </Pressable>
             <Text style={styles.headerTitle}>Scan Ticket</Text>

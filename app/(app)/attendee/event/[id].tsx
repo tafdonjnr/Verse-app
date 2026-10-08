@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { safeBack } from "@/src/utils/navigation";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -129,7 +130,7 @@ export default function EventDetail() {
           />
 
           {/* Back button */}
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
+          <Pressable style={styles.backBtn} onPress={() => safeBack("/attendee")}>
             <Text style={styles.backArrow}>←</Text>
           </Pressable>
 
