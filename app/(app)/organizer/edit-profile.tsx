@@ -7,7 +7,6 @@ import {
     Pressable,
     Image,
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
   } from "react-native";
@@ -17,6 +16,8 @@ import {
   import { colors, fonts, radius } from "@/src/theme";
   import { useAuthStore } from "@/src/store/auth-store";
   import { safeBack } from "@/src/utils/navigation";
+  import { showMessage } from "@/src/utils/dialogs";
+  import { resolveMediaUrl } from "@/src/utils/media";
   
   const BASE_URL = "https://eventapp-ju5c.onrender.com";
   
@@ -87,7 +88,7 @@ import {
   
     const handleSave = async () => {
       if (!form.name.trim()) {
-        Alert.alert("Name required", "Please enter your name.");
+        showMessage("Name required", "Please enter your name.");
         return;
       }
       setSaving(true);
@@ -109,20 +110,18 @@ import {
   
         const data = await res.json();
         if (res.ok) {
-          Alert.alert("Saved", "Profile updated successfully.", [
-            { text: "Done", onPress: () => router.back() },
-          ]);
+          showMessage("Saved", "Profile updated successfully.", () => router.back());
         } else {
-          Alert.alert("Error", data.message ?? "Failed to save");
+          showMessage("Error", data.message ?? "Failed to save");
         }
       } catch {
-        Alert.alert("Error", "Network error — try again");
+        showMessage("Error", "Network error — try again");
       } finally {
         setSaving(false);
       }
     };
   
-    const logoUri = newLogo?.uri ?? form.logo ?? null;
+    const logoUri = newLogo?.uri ?? resolveMediaUrl(form.logo);
     const initials = form.orgName
       ? form.orgName.slice(0, 2).toUpperCase()
       : form.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "OR";

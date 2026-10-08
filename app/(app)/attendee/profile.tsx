@@ -4,14 +4,14 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Alert,
   Image,
-  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { confirmAction } from "@/src/utils/dialogs";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 type MenuItem = {
   icon: string;
@@ -24,29 +24,17 @@ export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const performLogout = async () => {
-    await logout();
-    router.replace("/login");
-  };
-
   const handleLogout = () => {
-    if (Platform.OS === "web") {
-      if (typeof window !== "undefined" && window.confirm("Are you sure you want to sign out?")) {
-        void performLogout();
-      }
-      return;
-    }
-
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: () => {
-          void performLogout();
-        },
+    confirmAction(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      "Sign Out",
+      async () => {
+        await logout();
+        router.replace("/login");
       },
-    ]);
+      true
+    );
   };
 
   const menuItems: MenuItem[] = [
@@ -89,7 +77,7 @@ export default function ProfileScreen() {
     .toUpperCase()
     .slice(0, 2) ?? "V";
 
-  const avatarUri = user?.avatar ?? null;
+  const avatarUri = resolveMediaUrl(user?.avatar);
 
   return (
     <ScrollView

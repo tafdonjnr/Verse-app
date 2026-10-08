@@ -7,7 +7,6 @@ import {
   Pressable,
   Image,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -18,6 +17,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { safeBack } from "@/src/utils/navigation";
+import { showMessage } from "@/src/utils/dialogs";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -114,7 +115,7 @@ export default function AttendeeEditProfile() {
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      Alert.alert("Name required", "Please enter your display name.");
+      showMessage("Name required", "Please enter your display name.");
       return;
     }
     setSaving(true);
@@ -144,7 +145,7 @@ export default function AttendeeEditProfile() {
       try {
         data = JSON.parse(text);
       } catch {
-        Alert.alert("Error", `Server returned: ${text.slice(0, 200)}`);
+        showMessage("Error", `Server returned: ${text.slice(0, 200)}`);
         return;
       }
       if (res.ok) {
@@ -162,14 +163,12 @@ export default function AttendeeEditProfile() {
           currentToken ?? ""
         );
 
-        Alert.alert("Saved", "Profile updated successfully.", [
-          { text: "Done", onPress: () => router.back() },
-        ]);
+        showMessage("Saved", "Profile updated successfully.", () => router.back());
       } else {
-        Alert.alert("Error", data.message ?? "Failed to save");
+        showMessage("Error", data.message ?? "Failed to save");
       }
     } catch {
-      Alert.alert("Error", "Network error — try again");
+      showMessage("Error", "Network error — try again");
     } finally {
       setSaving(false);
     }
@@ -177,7 +176,7 @@ export default function AttendeeEditProfile() {
 
   // These must be declared before the loading-state early return,
   // so they're in scope for the JSX below regardless of render path
-  const avatarUri = newAvatar?.uri ?? form.avatar ?? null;
+  const avatarUri = newAvatar?.uri ?? resolveMediaUrl(form.avatar);
   const initials = form.name
     ? form.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "V";

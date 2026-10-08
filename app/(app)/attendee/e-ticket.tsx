@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
-import { resolveOrganizerLogo } from "@/src/utils/media";
+import { resolveMediaUrl } from "@/src/utils/media";
 import { safeBack } from "@/src/utils/navigation";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -135,9 +135,9 @@ export default function ETicketScreen() {
 
             {(ticket.organizerName || ticket.organizerLogo) ? (
               <View style={styles.organizerRow}>
-                {resolveOrganizerLogo(ticket.organizerLogo) ? (
+                {resolveMediaUrl(ticket.organizerLogo) ? (
                   <Image
-                    source={{ uri: resolveOrganizerLogo(ticket.organizerLogo)! }}
+                    source={{ uri: resolveMediaUrl(ticket.organizerLogo)! }}
                     style={styles.organizerLogo}
                   />
                 ) : (
@@ -194,9 +194,9 @@ export default function ETicketScreen() {
           <View style={styles.qrSection}>
             <Text style={styles.qrLabel}>SCAN TO CHECK IN</Text>
 
-            {ticket.qrCodePath ? (
+            {resolveMediaUrl(ticket.qrCodePath) ? (
               <Image
-                source={{ uri: ticket.qrCodePath }}
+                source={{ uri: resolveMediaUrl(ticket.qrCodePath)! }}
                 style={styles.qrCode}
                 resizeMode="contain"
               />

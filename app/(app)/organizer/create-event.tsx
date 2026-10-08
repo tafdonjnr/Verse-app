@@ -7,7 +7,6 @@ import {
   Pressable,
   Image,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   PanResponder,
@@ -21,6 +20,8 @@ import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { ABUJA_AREAS } from "@/src/constants/areas";
 import { safeBack } from "@/src/utils/navigation";
+import { showMessage } from "@/src/utils/dialogs";
+import { resolveMediaUrl } from "@/src/utils/media";
 import React from "react";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -275,10 +276,10 @@ function WizardScreen() {
         setSubmitted(true);
       } else {
         const err = await res.json();
-        Alert.alert("Error", err.message ?? "Failed to create event");
+        showMessage("Error", err.message ?? "Failed to create event");
       }
     } catch {
-      Alert.alert("Error", "Network error — please try again");
+      showMessage("Error", "Network error — please try again");
     } finally {
       setSubmitting(false);
     }
@@ -793,7 +794,7 @@ function EditScreen({ eventId }: { eventId: string }) {
           existingBanner: event.banner ?? null,
         });
       } catch {
-        Alert.alert("Error", "Could not load event details");
+        showMessage("Error", "Could not load event details");
       } finally {
         setLoading(false);
       }
@@ -838,15 +839,13 @@ function EditScreen({ eventId }: { eventId: string }) {
       });
 
       if (res.ok) {
-        Alert.alert("Saved", "Event updated successfully.", [
-          { text: "Done", onPress: () => router.back() },
-        ]);
+        showMessage("Saved", "Event updated successfully.", () => router.back());
       } else {
         const err = await res.json();
-        Alert.alert("Error", err.message ?? "Failed to update event");
+        showMessage("Error", err.message ?? "Failed to update event");
       }
     } catch {
-      Alert.alert("Error", "Network error — please try again");
+      showMessage("Error", "Network error — please try again");
     } finally {
       setSubmitting(false);
     }
@@ -860,7 +859,7 @@ function EditScreen({ eventId }: { eventId: string }) {
     );
   }
 
-  const bannerUri = data.banner?.uri ?? data.existingBanner ?? null;
+  const bannerUri = data.banner?.uri ?? resolveMediaUrl(data.existingBanner);
   const { isPaid } = data;
   const formatDate = (d: Date) =>
     d.toLocaleDateString("en-NG", { weekday: "short", day: "numeric", month: "long", year: "numeric" });

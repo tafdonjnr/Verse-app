@@ -6,7 +6,6 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
-  Alert,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -14,6 +13,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { safeBack } from "@/src/utils/navigation";
+import { showMessage, confirmAction } from "@/src/utils/dialogs";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -60,69 +61,59 @@ export default function OrganizerEventDetail() {
       : `₦${Number(price).toLocaleString()}`;
 
   const handleDelete = () => {
-    Alert.alert(
+    confirmAction(
       "Delete Event",
       "Are you sure you want to delete this event? This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setDeleting(true);
-              const res = await fetch(`${BASE_URL}/api/events/${id}`, {
-                method: "DELETE",
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              if (res.ok) {
-                router.replace("/organizer/events" as any);
-              } else {
-                const data = await res.json();
-                Alert.alert("Error", data.message ?? "Failed to delete event");
-              }
-            } catch {
-              Alert.alert("Error", "Something went wrong");
-            } finally {
-              setDeleting(false);
-            }
-          },
-        },
-      ]
+      "Delete",
+      async () => {
+        try {
+          setDeleting(true);
+          const res = await fetch(`${BASE_URL}/api/events/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            router.replace("/organizer/events" as any);
+          } else {
+            const data = await res.json();
+            showMessage("Error", data.message ?? "Failed to delete event");
+          }
+        } catch {
+          showMessage("Error", "Something went wrong");
+        } finally {
+          setDeleting(false);
+        }
+      },
+      true
     );
   };
 
   const handleCancel = () => {
-    Alert.alert(
+    confirmAction(
       "Cancel Event",
       "This will cancel the event and automatically refund all ticket buyers. This cannot be undone.",
-      [
-        { text: "Go Back", style: "cancel" },
-        {
-          text: "Cancel Event & Refund All",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const res = await fetch(`${BASE_URL}/api/events/${id}/cancel`, {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              const data = await res.json();
-              if (res.ok) {
-                Alert.alert(
-                  "Event Cancelled",
-                  `Refunds triggered for ${data.refundsTriggered} ticket(s). Attendees will receive their money within 5–10 business days.`,
-                  [{ text: "OK", onPress: () => router.replace("/organizer/events") }]
-                );
-              } else {
-                Alert.alert("Error", data.message ?? "Failed to cancel event");
-              }
-            } catch {
-              Alert.alert("Error", "Network error — try again");
-            }
-          },
-        },
-      ]
+      "Cancel Event & Refund All",
+      async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/api/events/${id}/cancel`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showMessage(
+              "Event Cancelled",
+              `Refunds triggered for ${data.refundsTriggered} ticket(s). Attendees will receive their money within 5–10 business days.`,
+              () => router.replace("/organizer/events")
+            );
+          } else {
+            showMessage("Error", data.message ?? "Failed to cancel event");
+          }
+        } catch {
+          showMessage("Error", "Network error — try again");
+        }
+      },
+      true
     );
   };
 
@@ -157,9 +148,9 @@ export default function OrganizerEventDetail() {
       >
         {/* Hero */}
         <View style={styles.heroWrap}>
-          {event.banner ? (
+          {resolveMediaUrl(event.banner) ? (
             <Image
-              source={{ uri: event.banner }}
+              source={{ uri: resolveMediaUrl(event.banner)! }}
               style={styles.hero}
               resizeMode="cover"
             />

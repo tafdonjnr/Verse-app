@@ -4,16 +4,16 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Image,
-  Platform,
 } from "react-native";
 import { useState, useCallback } from "react";
 import { router, useFocusEffect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { confirmAction } from "@/src/utils/dialogs";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -75,29 +75,17 @@ export default function OrganizerProfileScreen() {
     }, [token])
   );
 
-  const performLogout = async () => {
-    await logout();
-    router.replace("/login");
-  };
-
   const handleLogout = () => {
-    if (Platform.OS === "web") {
-      if (typeof window !== "undefined" && window.confirm("Are you sure you want to sign out?")) {
-        void performLogout();
-      }
-      return;
-    }
-
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: () => {
-          void performLogout();
-        },
+    confirmAction(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      "Sign Out",
+      async () => {
+        await logout();
+        router.replace("/login");
       },
-    ]);
+      true
+    );
   };
 
   const initials = profile?.orgName
@@ -167,8 +155,8 @@ export default function OrganizerProfileScreen() {
       </View>
 
       <View style={styles.avatarSection}>
-        {profile?.logo ? (
-          <Image source={{ uri: profile.logo }} style={styles.logoImg} />
+        {resolveMediaUrl(profile?.logo) ? (
+          <Image source={{ uri: resolveMediaUrl(profile?.logo)! }} style={styles.logoImg} />
         ) : (
           <LinearGradient
             colors={["#1a1a2e", "#16213e", "#0f3460"]}

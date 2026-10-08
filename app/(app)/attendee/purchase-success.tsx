@@ -12,6 +12,7 @@ import {
   import Svg, { Rect } from "react-native-svg";
   import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
   import { useAuthStore } from "@/src/store/auth-store";
+  import { resolveMediaUrl } from "@/src/utils/media";
   
   const BASE_URL = "https://eventapp-ju5c.onrender.com";
   
@@ -123,7 +124,7 @@ import {
               <View style={styles.cardBody}>
                 {event.banner ? (
                   <Image
-                    source={{ uri: event.banner }}
+                    source={{ uri: resolveMediaUrl(event.banner)! }}
                     style={styles.thumb}
                     resizeMode="cover"
                   />

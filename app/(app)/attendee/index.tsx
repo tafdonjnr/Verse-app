@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { colors, fonts, radius, getCategoryTheme, shadows } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 const CATEGORIES = [
@@ -179,7 +180,7 @@ export default function AttendeeHome() {
                 onPress={() => router.push("/attendee/profile" as any)}
               >
                 {user?.avatar ? (
-                  <Image source={{ uri: user.avatar }} style={styles.avatarImg} />
+                  <Image source={{ uri: resolveMediaUrl(user.avatar)! }} style={styles.avatarImg} />
                 ) : (
                   <Text style={styles.avatarText}>
                     {user?.name?.[0]?.toUpperCase() ?? "V"}
@@ -248,7 +249,7 @@ export default function AttendeeHome() {
               >
                 {featuredEvent.banner ? (
                   <Image
-                    source={{ uri: featuredEvent.banner }}
+                    source={{ uri: resolveMediaUrl(featuredEvent.banner)! }}
                     style={styles.heroBanner}
                     resizeMode="cover"
                   />
@@ -367,7 +368,7 @@ export default function AttendeeHome() {
 
                   {item.banner ? (
                     <Image
-                      source={{ uri: item.banner }}
+                      source={{ uri: resolveMediaUrl(item.banner)! }}
                       style={styles.thumbnail}
                       resizeMode="cover"
                     />

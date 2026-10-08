@@ -13,6 +13,7 @@ import * as WebBrowser from "expo-web-browser";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { safeBack } from "@/src/utils/navigation";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -202,9 +203,9 @@ export default function CheckoutScreen() {
         <View style={styles.eventCard}>
           <View style={[styles.eventCardStrip, { backgroundColor: theme.bg }]} />
           <View style={styles.eventCardBody}>
-            {event.banner ? (
+            {resolveMediaUrl(event.banner) ? (
               <Image
-                source={{ uri: event.banner }}
+                source={{ uri: resolveMediaUrl(event.banner)! }}
                 style={styles.eventThumb}
                 resizeMode="cover"
               />

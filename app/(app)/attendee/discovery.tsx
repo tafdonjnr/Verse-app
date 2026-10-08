@@ -17,6 +17,7 @@ import { router } from "expo-router";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { getNearbyAreas } from "@/src/constants/areas";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -98,9 +99,9 @@ function CompactCard({ item }: { item: Event }) {
       style={styles.compactCard}
       onPress={() => router.push(`/attendee/event/${item._id}` as any)}
     >
-      {item.banner ? (
+      {resolveMediaUrl(item.banner) ? (
         <Image
-          source={{ uri: item.banner }}
+          source={{ uri: resolveMediaUrl(item.banner)! }}
           style={styles.compactBanner}
           resizeMode="cover"
         />
@@ -206,9 +207,9 @@ function EventCard({ item }: { item: Event }) {
               {item.area ? `  ·  ${item.area}` : ""}
             </Text>
           </View>
-          {item.banner ? (
+          {resolveMediaUrl(item.banner) ? (
             <Image
-              source={{ uri: item.banner }}
+              source={{ uri: resolveMediaUrl(item.banner)! }}
               style={styles.thumbnail}
               resizeMode="cover"
             />
@@ -387,9 +388,9 @@ export default function DiscoveryScreen() {
                           router.push(`/attendee/event/${event._id}` as any)
                         }
                       >
-                        {event.banner ? (
+                        {resolveMediaUrl(event.banner) ? (
                           <Image
-                            source={{ uri: event.banner }}
+                            source={{ uri: resolveMediaUrl(event.banner)! }}
                             style={styles.heroBanner}
                             resizeMode="cover"
                           />

@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
 import { safeBack } from "@/src/utils/navigation";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const { width } = Dimensions.get("window");
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
@@ -103,7 +104,7 @@ export default function EventDetail() {
   }
 
   const theme = getCategoryTheme(event.category);
-  const bannerUri = event.banner ?? null;
+  const bannerUri = resolveMediaUrl(event.banner);
   const isPast = new Date(event.date) < new Date();
 
   return (
@@ -215,9 +216,9 @@ export default function EventDetail() {
           {event.organizer && typeof event.organizer !== "string" ? (
             <View style={styles.organizerRow}>
               <View style={styles.organizerAvatar}>
-                {event.organizer.logo ? (
+                {resolveMediaUrl(event.organizer.logo) ? (
                   <Image
-                    source={{ uri: `${BASE_URL}/uploads/${event.organizer.logo}` }}
+                    source={{ uri: resolveMediaUrl(event.organizer.logo)! }}
                     style={styles.organizerAvatarImg}
                   />
                 ) : (

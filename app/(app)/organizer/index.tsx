@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, fonts, radius, getCategoryTheme } from "@/src/theme";
 import { useAuthStore } from "@/src/store/auth-store";
+import { resolveMediaUrl } from "@/src/utils/media";
 
 const BASE_URL = "https://eventapp-ju5c.onrender.com";
 
@@ -65,7 +66,7 @@ function OrganizerOnboarding({ organizer }: { organizer: OrganizerInfo }) {
           onPress={() => router.push("/organizer/profile" as any)}
         >
           {organizer.logo ? (
-            <Image source={{ uri: organizer.logo }} style={styles.avatarImg} />
+            <Image source={{ uri: resolveMediaUrl(organizer.logo)! }} style={styles.avatarImg} />
           ) : (
             <LinearGradient
               colors={["#7B7BD6", "#4A4A9C"]}
@@ -265,7 +266,7 @@ export default function OrganizerDashboard() {
           onPress={() => router.push("/organizer/profile" as any)}
         >
           {organizer?.logo ? (
-            <Image source={{ uri: organizer.logo }} style={styles.avatarImg} />
+            <Image source={{ uri: resolveMediaUrl(organizer.logo)! }} style={styles.avatarImg} />
           ) : (
             <LinearGradient
               colors={["#7B7BD6", "#4A4A9C"]}
