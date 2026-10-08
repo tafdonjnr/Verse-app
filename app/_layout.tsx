@@ -1,7 +1,7 @@
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { Stack, router } from "expo-router";
+import { Stack, router, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 
@@ -25,14 +25,46 @@ import {
 } from "@expo-google-fonts/dm-mono";
 
 import { useAuthStore } from "@/src/store/auth-store";
-import { colors } from "@/src/theme";
+
+const AUTH_PATHS = new Set([
+  "/splash",
+  "/role",
+  "/login",
+  "/sign-up",
+  "/otp",
+]);
+
+function normalizePath(pathname: string) {
+  if (!pathname) return "/";
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+}
+
+function isAuthPath(path: string) {
+  if (AUTH_PATHS.has(path)) return true;
+  for (const authPath of AUTH_PATHS) {
+    if (path.startsWith(`${authPath}/`)) return true;
+  }
+  return false;
+}
+
+function isProtectedPath(path: string) {
+  return (
+    path === "/attendee" ||
+    path.startsWith("/attendee/") ||
+    path === "/organizer" ||
+    path.startsWith("/organizer/")
+  );
+}
 
 export default function RootLayout() {
   const hydrate = useAuthStore((state) => state.hydrate);
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  const pathname = usePathname();
   const [hydrated, setHydrated] = useState(false);
-  const hasRedirected = useRef(false);
 
   const [fontsLoaded] = useFonts({
     Fraunces_400Regular,
@@ -52,21 +84,26 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!hydrated || !fontsLoaded) return;
-    if (hasRedirected.current) return; // only redirect once on cold start
 
-    hasRedirected.current = true;
+    const path = normalizePath(pathname);
+    const isAuthed = !!(token && user);
 
-    if (!token || !user) {
-      router.replace("/(auth)/splash");
+    if (!isAuthed) {
+      // Protected routes require a session → login (not splash)
+      if (isProtectedPath(path)) {
+        router.replace("/login");
+      }
+      // Valid auth routes and "/" (handled by app/index) stay as-is
       return;
     }
 
-    if (user.role === "organizer") {
-      router.replace("/organizer");
-    } else {
-      router.replace("/attendee");
+    // Authenticated users should not linger on auth-only screens or bare root
+    if (path === "/" || isAuthPath(path)) {
+      router.replace(user.role === "organizer" ? "/organizer" : "/attendee");
     }
-  }, [hydrated, fontsLoaded, token, user]);
+    // Valid protected URLs (including deep links / refresh) render as-is;
+    // role mismatches are handled by attendee/organizer layouts.
+  }, [hydrated, fontsLoaded, token, user, pathname]);
 
   if (!fontsLoaded || !hydrated) {
     return (

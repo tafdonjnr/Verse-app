@@ -6,12 +6,12 @@ import { useAuthStore } from "@/src/store/auth-store";
 
 function FloatingTabBar({ state, descriptors, navigation }: any) {
   const currentRoute = state.routes[state.index].name;
-  const hiddenRoutes = ["create-event", "event-details", "manage-events"];
+  const hiddenRoutes = ["create-event", "event-details", "manage-events", "event/[id]"];
   const nestedRoute =
     state.routes[state.index]?.state?.routes?.[
       state.routes[state.index]?.state?.index ?? 0
     ]?.name ?? "";
-  const hiddenNested = ["create-event", "[id]"];
+  const hiddenNested = ["create-event", "[id]", "event/[id]"];
 
   if (hiddenRoutes.includes(currentRoute) || hiddenNested.includes(nestedRoute)) {
     return null;
@@ -86,7 +86,7 @@ export default function OrganizerLayout() {
       <Tabs.Screen name="earnings" />
       <Tabs.Screen name="profile" />
       <Tabs.Screen name="create-event" options={{ href: null }} />
-      <Tabs.Screen name="event" options={{ href: null }} />
+      <Tabs.Screen name="event/[id]" options={{ href: null }} />
       <Tabs.Screen name="event-details" options={{ href: null }} />
       <Tabs.Screen name="manage-events" options={{ href: null }} />
     </Tabs>
@@ -109,10 +109,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 8,
     gap: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
+    boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.25)",
     elevation: 12,
   },
   tabItem: {
